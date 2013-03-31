@@ -10,6 +10,10 @@
 #include <cassert>
 using namespace std;
 
+const size_t CHUNK_SIZE = 256;
+const size_t N_ROWS = CHUNK_SIZE - 1;
+const size_t N_COLS = 256 * 256;
+
 class OneThreadTest {
     static mutex OutMutex;
     vector<vector<size_t>> StatTable;
@@ -17,23 +21,23 @@ class OneThreadTest {
     size_t Count;
 public:
     OneThreadTest(size_t id, size_t count) 
-        : StatTable(256, vector<size_t>(256, 0))
+        : StatTable(N_ROWS, vector<size_t>(N_COLS, 0))
         , ThreadId(id)
         , Count(count)
     {}
 
     void operator()() {
         TRC4State state;
-        vector<unsigned char> items(256);
+        vector<unsigned char> items(CHUNK_SIZE);
         InitializeRandomState(state, default_random_engine(ThreadId * Count + 1));
         for (size_t i = 0; i < Count; ++i) {
             if (0 == i % 1000000) {
                 lock_guard<mutex> lk(OutMutex);
                 //cerr << ThreadId << " " << i << endl;
             }
-            GenStream(state, 256, items);
-            for (size_t j = 0; j < 256; ++j) 
-                ++StatTable[j][items[j]];
+            GenStream(state, CHUNK_SIZE, items);
+            for (size_t j = 0; j < N_ROWS; ++j) 
+                ++StatTable[j][items[j] << 8 + items[j+1]];
         }
     }
 
@@ -43,19 +47,18 @@ mutex OneThreadTest::OutMutex;
 
 
 void PrintStatTables(vector<OneThreadTest>& testers, const size_t nTests) {
-    const double expected = nTests * 256.0 / (256 * 256);
-    for (size_t i = 0; i < 256; ++i) {
-        vector<size_t> elements(256, 0);
+    for (size_t i = 0; i < N_ROWS; ++i) {
+        vector<size_t> elements(N_COLS, 0);
         cout << i << "\t";
         for (vector<OneThreadTest>::const_iterator it = testers.begin(); it != testers.end(); ++it)
-            for (size_t j = 0; j < 256; ++j)
+            for (size_t j = 0; j < N_COLS; ++j)
                 elements[j] += it->StatTable[i][j];// / expected;
         //cout << setprecision(6) << fixed;
         //vector<double>::const_iterator minIt = min_element(elements.begin(), elements.end());
         //vector<double>::const_iterator maxIt = max_element(elements.begin(), elements.end());
         //cout << "min:" << setw(3) << (minIt - elements.begin()) << "[" << setprecision(6) << fixed << *minIt << "] ";
         //cout << "max:" << setw(3) << (maxIt - elements.begin()) << "[" << setprecision(6) << fixed << *maxIt << "] ";
-        for (size_t j = 0; j < 256; ++j) {
+        for (size_t j = 0; j < N_COLS; ++j) {
             cout << elements[j] << " ";
         }
         cout << endl;
