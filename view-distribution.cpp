@@ -49,12 +49,7 @@ void PrintStatTables(vector<OneThreadTest>& testers, const size_t nTests) {
         cout << i << "\t";
         for (vector<OneThreadTest>::const_iterator it = testers.begin(); it != testers.end(); ++it)
             for (size_t j = 0; j < 256; ++j)
-                elements[j] += it->StatTable[i][j];// / expected;
-        //cout << setprecision(6) << fixed;
-        //vector<double>::const_iterator minIt = min_element(elements.begin(), elements.end());
-        //vector<double>::const_iterator maxIt = max_element(elements.begin(), elements.end());
-        //cout << "min:" << setw(3) << (minIt - elements.begin()) << "[" << setprecision(6) << fixed << *minIt << "] ";
-        //cout << "max:" << setw(3) << (maxIt - elements.begin()) << "[" << setprecision(6) << fixed << *maxIt << "] ";
+                elements[j] += it->StatTable[i][j];
         for (size_t j = 0; j < 256; ++j) {
             cout << elements[j] << " ";
         }
