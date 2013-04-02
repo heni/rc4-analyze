@@ -1,4 +1,4 @@
 rc4-analyze
 ===========
 
-analyze RC4 crypto algorithm statistical deviations
+analysis for  RC4 crypto algorithm statistical deviations
