@@ -72,6 +72,7 @@ public:
             const size_t offset = buffer[i] * 256 + buffer[i + 1];
             ++Internal[i][offset];
         }
+        ++AggregatedBlocksCount;
     }
 
     std::vector<double> GetSlice(size_t index) const {
