@@ -25,7 +25,7 @@ void SaveMassiveCryptoSamples(ostream& out, const string& text, size_t count) {
 
 int main() {
     ofstream out("encrypted.dat", ios::binary);
-    SaveMassiveCryptoSamples(out, ex_text.substr(0, 256), 64<<20);
+    SaveMassiveCryptoSamples(out, ex_text.substr(0, 256), 1ull<<32);
     out.close();
     return 0;
 }

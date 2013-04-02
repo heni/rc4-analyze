@@ -1,6 +1,8 @@
 #include <vector>
 #include <cassert>
 #include <iostream>
+#include <stdexcept>
+#include <algorithm>
 
 class UnigramBlocksStatistics {
     static const size_t SYMBOLS = 256;
@@ -34,7 +36,7 @@ public:
             assert(accumulate(Internal[i].begin(), Internal[i].end(), 0ull) == AggregatedBlocksCount);
             out.write(reinterpret_cast<const char*>(&Internal[i][0]), SYMBOLS * sizeof(Internal[i][0]));
             if (!out)
-                throw runtime_error("statistics dump error");
+                throw std::runtime_error("statistics dump error");
         }
     }
 
@@ -42,7 +44,7 @@ public:
         for (size_t i = 0; i < ChunkSize; ++i) {
             in.read(reinterpret_cast<char*>(&Internal[i][0]), SYMBOLS * sizeof(Internal[i][0]));
             if (!in)
-                throw runtime_error("statistics load error");
+                throw std::runtime_error("statistics load error");
 
             if (i == 0)
                 AggregatedBlocksCount = accumulate(Internal[i].begin(), Internal[i].end(), 0ull);
