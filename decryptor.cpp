@@ -4,6 +4,7 @@
 #include <fstream>
 #include <sstream>
 #include <cmath>
+#include <cctype>
 #include <limits>
 using namespace std;
 
@@ -16,8 +17,10 @@ vector<vector<double>> LoadExpectedFreqs(istream& in) {
         assert(dPos != string::npos);
         stringstream tmpIn(buffer.substr(dPos + 2));
         retval.emplace_back(vector<double>(256));
-        for (size_t j = 0; j < 256; ++j)
+        for (size_t j = 0; j < 256; ++j) {
             tmpIn >> retval.back()[j];
+            retval.back()[j] /= 256;
+        }
         assert(tmpIn);
     }
     return retval;
@@ -25,38 +28,45 @@ vector<vector<double>> LoadExpectedFreqs(istream& in) {
 
 int MostLikelyCharacter(const vector<double>& freqs, const vector<double>& expectedFreqs) {
     assert(expectedFreqs.size() == freqs.size());
+    assert(fabsl(accumulate(freqs.begin(), freqs.end(), 0.0) - 1.0) < 1e-10);
+    assert(fabsl(accumulate(expectedFreqs.begin(), expectedFreqs.end(), 0.0) - 1.0) < 1e-8);
     int bestChar = -1;
-    double bestLikelyhood = -numeric_limits<double>::infinity();
+    double bestLikelyhood = -numeric_limits<double>::infinity(), worstLikelyhood = numeric_limits<double>::infinity();
     for (size_t ch = 0; ch < freqs.size(); ++ch) {
         double likelyhood = 0.0;
         for (size_t i = 0; i < freqs.size(); ++i) {
-            likelyhood += log(expectedFreqs[i ^ ch]) * freqs[i];
+            likelyhood += freqs[i^ch] * (log(expectedFreqs[i]) - log(1.0 - expectedFreqs[i]));
         }
-        cerr << likelyhood << " ";
-        if (bestLikelyhood < likelyhood) {
-            bestLikelyhood = likelyhood;
+        if (bestLikelyhood < likelyhood) 
             bestChar = ch;
-        }
+        bestLikelyhood = max(likelyhood, bestLikelyhood);
+        worstLikelyhood = min(likelyhood, worstLikelyhood);
     }
-    cerr << endl;
-    cerr << bestLikelyhood << endl;
+    double d = bestLikelyhood - worstLikelyhood;
+    cerr << d << " " << exp(d)/(1 + exp(d)) << " " << bestLikelyhood 
+         << " " << 256 * (*max_element(freqs.begin(), freqs.end()) - *min_element(freqs.begin(), freqs.end())) 
+         << " " << 256 * (*max_element(expectedFreqs.begin(), expectedFreqs.end()) - *min_element(expectedFreqs.begin(), expectedFreqs.end())) 
+         << endl;
     return bestChar;
 }
 
-int main() {
-    const string freqFile = "data/rc4-distribution-1g.log";
-    ifstream freqIn(freqFile.c_str());
-    vector<vector<double>> expectedFreqs = LoadExpectedFreqs(freqIn);
+int main(int argc, const char* argv[]) {
+    const string freqFile = "data/uni-distribution.bin";
+    ifstream freqIn(freqFile.c_str(), ios::binary);
+    UnigramBlocksStatistics freqStObj(256);
+    freqStObj.Load(freqIn);
     
-    const string encFile = "encrypted.bin";
+    const string encFile = argv[1];
     ifstream encIn(encFile.c_str(), ios::binary);
     UnigramBlocksStatistics encStObj(256);
     encStObj.Load(encIn);
     
     assert(encIn && freqIn);
 
-    for (size_t i = 0; i < 256; ++i)
-        cout << static_cast<char>(MostLikelyCharacter(encStObj.GetSlice(i), expectedFreqs[i]));
+    for (size_t i = 0; i < 256; ++i) {
+        int ret = MostLikelyCharacter(encStObj.GetSlice(i), freqStObj.GetSlice(i));
+        cout << (isprint(ret) ? static_cast<char>(ret) : '.');
+    }
     cout << endl;
     return 0; 
 }
