@@ -17,7 +17,7 @@ char printchar(int v) {
 vector<double> CalcLikelyhoods(const vector<double>& freqs, const vector<double>& expectedFreqs) {
     assert(expectedFreqs.size() == freqs.size());
     assert(fabsl(accumulate(freqs.begin(), freqs.end(), 0.0) - 1.0) < 1e-10);
-    assert(fabsl(accumulate(expectedFreqs.begin(), expectedFreqs.end(), 0.0) - 1.0) < 1e-8);
+    assert(fabsl(accumulate(expectedFreqs.begin(), expectedFreqs.end(), 0.0) - 1.0) < 1e-10);
     vector<double> retval(freqs.size());
     for (size_t i = 0; i < expectedFreqs.size(); ++i)
         retval[i] = log(expectedFreqs[i]) - log(1.0 - expectedFreqs[i]);
