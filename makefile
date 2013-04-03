@@ -1,8 +1,11 @@
-all: view-distribution encrypt-example decryptor
+all: view-distribution encrypt-example decryptor bigrams-decryptor
 
 
 encrypt-example: encrypt-example.cpp rc4.cpp rc4.h stattables.h
 	g++ -g -O3 encrypt-example.cpp rc4.cpp -std=c++0x -o $@
+
+bigrams-decryptor: bigrams-decryptor.cpp stattables.h
+	g++ -g -O3 bigrams-decryptor.cpp -std=c++0x -o $@
 
 decryptor: decryptor.cpp stattables.h
 	g++ -g -O3 decryptor.cpp -std=c++0x -o $@
