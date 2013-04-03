@@ -1,4 +1,5 @@
 #include "stattables.h"
+#include <walsh/dyadiccnvl.h>
 #include <iostream>
 #include <string>
 #include <fstream>
@@ -30,24 +31,12 @@ int MostLikelyCharacter(const vector<double>& freqs, const vector<double>& expec
     assert(expectedFreqs.size() == freqs.size());
     assert(fabsl(accumulate(freqs.begin(), freqs.end(), 0.0) - 1.0) < 1e-10);
     assert(fabsl(accumulate(expectedFreqs.begin(), expectedFreqs.end(), 0.0) - 1.0) < 1e-8);
-    int bestChar = -1;
-    double bestLikelyhood = -numeric_limits<double>::infinity(), worstLikelyhood = numeric_limits<double>::infinity();
-    for (size_t ch = 0; ch < freqs.size(); ++ch) {
-        double likelyhood = 0.0;
-        for (size_t i = 0; i < freqs.size(); ++i) {
-            likelyhood += freqs[i^ch] * (log(expectedFreqs[i]) - log(1.0 - expectedFreqs[i]));
-        }
-        if (bestLikelyhood < likelyhood) 
-            bestChar = ch;
-        bestLikelyhood = max(likelyhood, bestLikelyhood);
-        worstLikelyhood = min(likelyhood, worstLikelyhood);
-    }
-    double d = bestLikelyhood - worstLikelyhood;
-    cerr << d << " " << exp(d)/(1 + exp(d)) << " " << bestLikelyhood 
-         << " " << 256 * (*max_element(freqs.begin(), freqs.end()) - *min_element(freqs.begin(), freqs.end())) 
-         << " " << 256 * (*max_element(expectedFreqs.begin(), expectedFreqs.end()) - *min_element(expectedFreqs.begin(), expectedFreqs.end())) 
-         << endl;
-    return bestChar;
+
+    vector<double> xx(freqs.size());
+    for (size_t i = 0; i < freqs.size(); ++i)
+        xx[i] = log(expectedFreqs[i]) - log(1.0 - expectedFreqs[i]);
+    dyadic_convolution<double>(const_cast<double*>(&*freqs.begin()), &*xx.begin(), 8);
+    return max_element(xx.begin(), xx.end()) - xx.begin();
 }
 
 int main(int argc, const char* argv[]) {

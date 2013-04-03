@@ -44,6 +44,6 @@ void SaveMassiveCryptoSamples(const string& outfilebase, const string& text, siz
 }
 
 int main() {
-    SaveMassiveCryptoSamples("encrypted", ex_text.substr(0, 256), 1ull<<22);
+    SaveMassiveCryptoSamples("encrypted", ex_text.substr(0, 256), 1ull<<32);
     return 0;
 }
