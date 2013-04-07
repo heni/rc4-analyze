@@ -13,4 +13,4 @@ tools:
 dependencies:
 * gcc (>=4.7)
 * make
-* fxt library (http://jjj.de/fxt/#fxt, you have no to compile whole fxtlib just download and unpack it)
+* fxt library (http://jjj.de/fxt/#fxt, you don't have to compile whole fxtlib just download and unpack it)
