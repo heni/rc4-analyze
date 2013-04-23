@@ -12,6 +12,6 @@ tools:
 * **bigrams-detector**   - decrypting tool based on positional bigrams distribution
 
 dependencies:
-* gcc (>=4.7)
+* gcc (>=4.7, I like c++11, really :)
 * make
 * fxt library (http://jjj.de/fxt/#fxt, you don't have to compile whole fxtlib just download and unpack it)
