@@ -22,22 +22,27 @@ int MostLikelyCharacter(const vector<double>& freqs, const vector<double>& expec
 }
 
 int main(int argc, const char* argv[]) {
-    const string freqFile = "data/uni-distribution.bin";
-    ifstream freqIn(freqFile.c_str(), ios::binary);
-    UnigramBlocksStatistics freqStObj(256);
-    freqStObj.Load(freqIn);
-    
-    const string encFile = argv[1];
-    ifstream encIn(encFile.c_str(), ios::binary);
-    UnigramBlocksStatistics encStObj(256);
-    encStObj.Load(encIn);
-    
-    assert(encIn && freqIn);
+    try {
+        const string freqFile = "data/uni-distribution.bin";
+        ifstream freqIn(freqFile.c_str(), ios::binary);
+        UnigramBlocksStatistics freqStObj(256);
+        freqStObj.Load(freqIn);
+        
+        const string encFile = argv[1];
+        ifstream encIn(encFile.c_str(), ios::binary);
+        UnigramBlocksStatistics encStObj(256);
+        encStObj.Load(encIn);
+        
+        assert(encIn && freqIn);
 
-    for (size_t i = 0; i < 256; ++i) {
-        int ret = MostLikelyCharacter(encStObj.GetSlice(i), freqStObj.GetSlice(i));
-        cout << (isprint(ret) ? static_cast<char>(ret) : '.');
+        for (size_t i = 0; i < 256; ++i) {
+            int ret = MostLikelyCharacter(encStObj.GetSlice(i), freqStObj.GetSlice(i));
+            cout << (isprint(ret) ? static_cast<char>(ret) : '.');
+        }
+        cout << endl;
+        return 0; 
+    } catch (const exception& e) {
+        cerr << "exception occurred: " << e.what() << endl;
+        return 1;
     }
-    cout << endl;
-    return 0; 
 }

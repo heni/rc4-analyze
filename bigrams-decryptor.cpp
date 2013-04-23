@@ -51,18 +51,23 @@ void BuildMostLikelyCharacters(const BigramBlocksStatistics& freqs, const Bigram
 }
 
 int main(int argc, const char* argv[]) {
-    const string freqFile = "data/bi-distribution.bin";
-    ifstream freqIn(freqFile.c_str(), ios::binary);
-    BigramBlocksStatistics freqStObj(256);
-    freqStObj.Load(freqIn);
-    
-    const string encFile = argv[1];
-    ifstream encIn(encFile.c_str(), ios::binary);
-    BigramBlocksStatistics encStObj(256);
-    encStObj.Load(encIn);
-    
-    assert(encIn && freqIn);
+    try {
+        const string freqFile = "data/bi-distribution.bin";
+        ifstream freqIn(freqFile.c_str(), ios::binary);
+        BigramBlocksStatistics freqStObj(256);
+        freqStObj.Load(freqIn);
+        
+        const string encFile = argv[1];
+        ifstream encIn(encFile.c_str(), ios::binary);
+        BigramBlocksStatistics encStObj(256);
+        encStObj.Load(encIn);
+        
+        assert(encIn && freqIn);
 
-    BuildMostLikelyCharacters(encStObj, freqStObj);
-    return 0; 
+        BuildMostLikelyCharacters(encStObj, freqStObj);
+        return 0; 
+    } catch (const exception& e) {
+        cerr << "exception occurred: " << e.what() << endl;
+        return 1;
+    }
 }

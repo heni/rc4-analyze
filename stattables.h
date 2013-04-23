@@ -95,11 +95,11 @@ class BigramBlocksStatistics : public StatisticsBase<BigramBlocksStatistics, 256
     typedef StatisticsBase<BigramBlocksStatistics, 256 * 256> TBase;
 public:
     BigramBlocksStatistics(size_t chunksize)
-        : TBase(chunksize)
+        : TBase(chunksize - 1)
     {}
 
     void Update(const std::vector<unsigned char>& buffer) {
-        assert(buffer.size() == ChunkSize);
+        assert(buffer.size() == ChunkSize + 1);
         for(size_t i = 0; i + 1 < ChunkSize; ++i) {
             const size_t offset = buffer[i] * 256 + buffer[i + 1];
             ++Internal[i][offset];
