@@ -19,6 +19,38 @@ public:
         , Internal(ChunkSize, std::vector<size_t>(CELL_SIZE, 0))
     {}
 
+    std::vector<double> GetSlice(size_t index) const {
+        std::vector<double> retval(CELL_SIZE);
+        const double expected = AggregatedBlocksCount * 1.0;
+        for (size_t i = 0; i < CELL_SIZE; ++i)
+            retval[i] = Internal[index][i] / expected;
+        return retval;
+    }
+
+    friend void PrintStatTables(const StatisticsBase<Derived, CELL_SIZE>* tables, size_t count, std::ostream& out) {
+        const size_t chunksize = tables->ChunkSize;
+        for (size_t i = 0; i < chunksize; ++i) {
+            std::vector<size_t> elements(chunksize, 0);
+            for(auto it = tables; it != tables + count; ++it) {
+                assert(chunksize == it->ChunkSize);
+                for (size_t j = 0; j < CELL_SIZE; ++j)
+                    elements[j] += it->Internal[i][j];
+            }
+            out << i << "\t";
+            for (auto v: elements)
+                out << v << " ";
+            out << std::endl;
+        }
+    }
+
+    void PrintStatTable(std::ostream& out) const {
+        for (size_t i = 0; i < ChunkSize; ++i) {
+            out << i << "\t";
+            for (auto v: Internal[i])
+                out << v << " ";
+        }
+    }
+
     void Dump(std::ostream& out) const {
         for (const auto& subStat: Internal) {
             assert(accumulate(subStat.begin(), subStat.end(), 0ull) == AggregatedBlocksCount);
@@ -26,14 +58,6 @@ public:
             if (!out)
                 throw std::runtime_error("statics dump error");
         }
-    }
-
-    std::vector<double> GetSlice(size_t index) const {
-        std::vector<double> retval(CELL_SIZE);
-        const double expected = AggregatedBlocksCount * 1.0;
-        for (size_t i = 0; i < CELL_SIZE; ++i)
-            retval[i] = Internal[index][i] / expected;
-        return retval;
     }
 
     void Load(std::istream& in) {

@@ -1,3 +1,4 @@
+#include "stattables.h"
 #include "rc4.h"
 #include <iomanip>
 #include <iostream>
@@ -10,20 +11,17 @@
 #include <cassert>
 using namespace std;
 
-const size_t CHUNK_SIZE = 256;
-const size_t N_ROWS = CHUNK_SIZE - 1;
-const size_t N_COLS = 256 * 256;
-
+template <class StatTable>
 class OneThreadTest {
-    static mutex OutMutex;
-    vector<vector<size_t>> StatTable;
+    static const size_t CHUNK_SIZE = 256;
     size_t ThreadId;
     size_t Count;
+    StatTable& StatObject;
 public:
-    OneThreadTest(size_t id, size_t count) 
-        : StatTable(N_ROWS, vector<size_t>(N_COLS, 0))
-        , ThreadId(id)
+    OneThreadTest(size_t id, size_t count, StatTable& stObject) 
+        : ThreadId(id)
         , Count(count)
+        , StatObject(stObject)
     {}
 
     void operator()() {
@@ -31,33 +29,11 @@ public:
         vector<unsigned char> items(CHUNK_SIZE);
         InitializeRandomState(state, default_random_engine(ThreadId * Count + 1));
         for (size_t i = 0; i < Count; ++i) {
-            if (0 == i % 1000000) {
-                lock_guard<mutex> lk(OutMutex);
-                //cerr << ThreadId << " " << i << endl;
-            }
             GenStream(state, CHUNK_SIZE, items);
-            for (size_t j = 0; j < N_ROWS; ++j) 
-                ++StatTable[j][items[j] << 8 + items[j+1]];
+            StatObject.Update(items);
         }
     }
-
-    friend void PrintStatTables(vector<OneThreadTest>&, const size_t);
 };
-mutex OneThreadTest::OutMutex;
-
-
-void PrintStatTables(vector<OneThreadTest>& testers, const size_t nTests) {
-    for (size_t i = 0; i < N_ROWS; ++i) {
-        vector<size_t> elements(N_COLS, 0);
-        cout << i << "\t";
-        for (vector<OneThreadTest>::const_iterator it = testers.begin(); it != testers.end(); ++it)
-            for (size_t j = 0; j < N_COLS; ++j)
-                elements[j] += it->StatTable[i][j];
-        for (size_t j = 0; j < N_COLS; ++j)
-            cout << elements[j] << " ";
-        cout << endl;
-    }
-}
 
 
 int main(int argc, const char* argv[]) {
@@ -75,16 +51,18 @@ int main(int argc, const char* argv[]) {
     while (getline(cin, task)) {
         const size_t seed = stoll(task, &sz);
         assert(sz == task.size() || task[sz] == '\t');
-        vector<OneThreadTest> testers;
+        
+        vector<UnigramBlocksStatistics> statTables(WorkersCount, UnigramBlocksStatistics(256));
+        vector<OneThreadTest<UnigramBlocksStatistics>> testers;
         vector<thread> workers;
-        for (size_t i = 0; i < WorkersCount; ++i)
-            testers.emplace_back(OneThreadTest(seed * WorkersCount + i, NTests / WorkersCount));
+        for (size_t i = 0; i < WorkersCount; ++i) 
+            testers.emplace_back(OneThreadTest<UnigramBlocksStatistics>(seed * WorkersCount + i, NTests / WorkersCount, statTables[i]));
         for (size_t i = 0; i < WorkersCount; ++i)
             workers.emplace_back(thread(ref(testers[i])));
+    
         for (size_t i = 0; i < WorkersCount; ++i)
             workers[i].join();
-
-        PrintStatTables(testers, NTests);
+        PrintStatTables(&*statTables.begin(), statTables.size(), cout);
     }
     return 0;
 }

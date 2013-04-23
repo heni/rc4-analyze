@@ -9,24 +9,6 @@
 #include <limits>
 using namespace std;
 
-vector<vector<double>> LoadExpectedFreqs(istream& in) {
-    vector<vector<double>> retval;
-    for (size_t i = 0; i < 256; ++i) {
-        string buffer;
-        getline(in, buffer);
-        size_t dPos = buffer.find_last_of(']');
-        assert(dPos != string::npos);
-        stringstream tmpIn(buffer.substr(dPos + 2));
-        retval.emplace_back(vector<double>(256));
-        for (size_t j = 0; j < 256; ++j) {
-            tmpIn >> retval.back()[j];
-            retval.back()[j] /= 256;
-        }
-        assert(tmpIn);
-    }
-    return retval;
-}
-
 int MostLikelyCharacter(const vector<double>& freqs, const vector<double>& expectedFreqs) {
     assert(expectedFreqs.size() == freqs.size());
     assert(fabsl(accumulate(freqs.begin(), freqs.end(), 0.0) - 1.0) < 1e-10);
