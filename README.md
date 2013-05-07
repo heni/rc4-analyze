@@ -2,7 +2,7 @@ rc4-analyze
 ===========
 
 Analysis of RC4 crypto algorithm statistical deviations  
-proof of concept for RC4 cryptoattack described at http://www.isg.rhul.ac.uk/tls/
+proof of concept for RC4 cryptoattack described at http://www.isg.rhul.ac.uk/tls/  
 Read http://rutsh.blogspot.ru/2013/04/rc4-analysis.html (in russian) for more information
 
 tools:
